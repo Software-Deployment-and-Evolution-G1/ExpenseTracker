@@ -17,8 +17,10 @@ public class NewExpenseController : Controller
         _context = context;
         _userManager = userManager;
     }
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
+        var categories = (from category in _context.Categories select category).ToList();
+        ViewBag.Add(categories);
         return View();
     }
 
@@ -71,6 +73,7 @@ public class NewExpenseController : Controller
             routeValues: null,
             value: expense);
     }
+
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()

@@ -1,0 +1,19 @@
+@model ExpenseTracker.Models.ExpenseViewModel
+@{
+    ViewData["Title"] = "Add a New Expense";
+}
+
+<div class="text-center">
+<form asp-action="CreateExpense">
+<input type="hidden" asp-for="Id" />
+<label asp-for="CategoryId" />
+<select asp-for="CategoryId"
+    asp-items="@(new SelectList(@ViewBag.categories,"CategoryID","CategoryName"))"></select>
+<label asp-for="Amount"/>
+<input asp-for="Amount"/>
+<label asp-for="Description"/>
+<input asp-for="Description"/>
+<label asp-for="ExpenseDate"/>
+<input asp-for="ExpenseDate"/>
+</form>
+</div>
