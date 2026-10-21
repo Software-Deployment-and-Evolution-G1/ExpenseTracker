@@ -164,7 +164,6 @@ jobs:
             --version-label "$VERSION_LABEL" \
             --source-bundle \
               S3Bucket="$AWS_DEPLOY_BUCKET",S3Key="expense-tracker/${VERSION_LABEL}.zip" \
-            --process
 
       - name: Deploy application
         env:
