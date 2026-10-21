@@ -1,8 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using ExpenseTracker.Models;
-using ExpenseTracker.Data;
-using Microsoft.EntityFrameworkCore;
+using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 
@@ -10,11 +9,11 @@ namespace ExpenseTracker.Controllers;
 
 public class ExpenseController : Controller
 {
-    private readonly ApplicationDbContext _context;
+    private readonly ExpenseService _expenseService;
     private readonly UserManager<ApplicationUser> _userManager;
-    public ExpenseController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    public ExpenseController(ExpenseService expenseService, UserManager<ApplicationUser> userManager)
     {
-        _context = context;
+        _expenseService = expenseService;
         _userManager = userManager;
     }
     public IActionResult Index()
@@ -38,10 +37,7 @@ public class ExpenseController : Controller
             return Unauthorized();
         }
 
-        var expenses = await _context.Expenses
-            .Where(expense => expense.UserId == currentUser.Id)
-            .ToListAsync(cancellationToken);
-
+        var expenses = await _expenseService.GetExpensesAsync(currentUser.Id, cancellationToken);
         return expenses;
     }
 
@@ -69,28 +65,18 @@ public class ExpenseController : Controller
             return Unauthorized();
         }
 
-        var expense = await _context.Expenses
-            .FirstOrDefaultAsync(item => item.Id == model.Id && item.UserId == currentUser.Id, cancellationToken);
-        if (expense is null)
+        var result = await _expenseService.UpdateExpenseAsync(currentUser.Id, model, cancellationToken);
+        if (result.Status == ExpenseMutationStatus.NotFound)
         {
             return NotFound();
         }
 
-        var categoryExists = await _context.Categories
-            .AnyAsync(category => category.Id == model.CategoryId, cancellationToken);
-        if (!categoryExists)
+        if (result.Status == ExpenseMutationStatus.InvalidCategory)
         {
             ModelState.AddModelError(nameof(model.CategoryId), "Select a valid category.");
             return BadRequest(ModelState);
         }
 
-        expense.CategoryId = model.CategoryId!.Value;
-        expense.Amount = model.Amount;
-        expense.Description = model.Description;
-        expense.ExpenseDate = model.ExpenseDate!.Value;
-        expense.UpdatedAt = DateTimeOffset.UtcNow;
-
-        await _context.SaveChangesAsync(cancellationToken);
         return NoContent();
     }
 
@@ -105,15 +91,11 @@ public class ExpenseController : Controller
             return Unauthorized();
         }
 
-        var expense = await _context.Expenses
-            .FirstOrDefaultAsync(item => item.Id == id && item.UserId == currentUser.Id, cancellationToken);
-        if (expense is null)
+        var result = await _expenseService.DeleteExpenseAsync(currentUser.Id, id, cancellationToken);
+        if (result.Status == ExpenseMutationStatus.NotFound)
         {
             return NotFound();
         }
-
-        _context.Expenses.Remove(expense);
-        await _context.SaveChangesAsync(cancellationToken);
 
         return NoContent();
     }
@@ -129,16 +111,7 @@ public class ExpenseController : Controller
             return Unauthorized();
         }
 
-        var categories = await _context.Categories
-            .ToListAsync(cancellationToken);
-
-        var categoryViewModels = categories.Select(c => new CategoryViewModel
-        {
-            Id = c.Id,
-            Name = c.Name,
-            Description = c.Description
-        }).ToList();
-
+        var categoryViewModels = await _expenseService.GetCategoriesAsync(cancellationToken);
         return categoryViewModels;
     }
 
