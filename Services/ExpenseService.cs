@@ -29,6 +29,23 @@ public sealed class ExpenseService
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<ExpenseListItemViewModel>> GetExpenseListAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Expenses
+            .AsNoTracking()
+            .Where(expense => expense.UserId == userId)
+            .OrderByDescending(expense => expense.ExpenseDate)
+            .ThenByDescending(expense => expense.CreatedAt)
+            .Select(expense => new ExpenseListItemViewModel
+            {
+                ExpenseDate = expense.ExpenseDate,
+                CategoryName = expense.Category.Name,
+                Description = expense.Description,
+                Amount = expense.Amount
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<CategoryViewModel>> GetCategoriesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Categories

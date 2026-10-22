@@ -16,11 +16,11 @@ public class NewExpenseController : Controller
         _expenseService = expenseService;
         _userManager = userManager;
     }
-    public IActionResult Index()
+    [Authorize]
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        var categories = _expenseService.GetCategoriesAsync();
-        ViewBag.Add(categories);
-        return View();
+        ViewBag.Categories = await _expenseService.GetCategoriesAsync(cancellationToken);
+        return View(new ExpenseViewModel());
     }
 
     [Authorize]
