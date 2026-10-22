@@ -23,6 +23,8 @@ public class ExpenseController : Controller
         return View();
     }
 
+    [Authorize]
+    [HttpGet]
     public async Task<IActionResult> EditAsync(int? id)
     {
         if (id == null)
@@ -30,12 +32,12 @@ public class ExpenseController : Controller
             return NotFound();
         }
 
-        var movie = await _expenseService.GetExpenseAsync((int)id);
-        if (movie == null)
+        var expense = await _expenseService.GetExpenseAsync((int)id);
+        if (expense == null)
         {
             return NotFound();
         }
-        return View(movie);
+        return View(expense);
     }
 
     public IActionResult Privacy()

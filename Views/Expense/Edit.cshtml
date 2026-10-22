@@ -1,0 +1,20 @@
+@model ExpenseTracker.Models.ExpenseViewModel
+
+<div>
+    <form asp-action="UpdateExpense">
+        <input type="hidden" asp-for="Id" />
+        <label asp-for="Amount"></label>
+        <input asp-for="Amount" />
+        <span asp-validation-for="Amount" class="text-danger"></span>
+        <label asp-for="CategoryId"></label>
+        <select><option value="">Select a category</option></select>
+        <span asp-validation-for="CategoryId"></span>
+        <label asp-for="ExpenseDate"></label>
+        <input asp-for="ExpenseDate" />
+        <span asp-validation-for="ExpenseDate"></span>
+        <label asp-for="Description">        </label>
+        <textarea asp-for="Description"></textarea>
+        <span asp-validation-for="Description"></span>
+        <input type="submit" value="Update" />
+    </form>
+</div>
