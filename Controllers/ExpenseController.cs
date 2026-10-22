@@ -21,6 +21,21 @@ public class ExpenseController : Controller
         return View();
     }
 
+    public async Task<IActionResult> EditAsync(int? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+
+        var movie = await _expenseService.GetExpenseAsync((int)id);
+        if (movie == null)
+        {
+            return NotFound();
+        }
+        return View(movie);
+    }
+
     public IActionResult Privacy()
     {
         return View();
