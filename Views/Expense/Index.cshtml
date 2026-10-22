@@ -1,4 +1,4 @@
-@model List<ExpenseTracker.Models.Expense>
+@model ExpenseViewModel
 @{
     ViewData["Title"] = "View Expenses";
 }
@@ -8,21 +8,21 @@
         <thead>
             <tr>
                 <th>
-                    ExpenseDate
+                    @Html.DisplayNameFor(model => model.ExpenseDate)
                 </th>
                 <th>
-                    Amount
+                    @Html.DisplayNameFor(model => model.Amount)
                 </th>
                 <th>
-                    CategoryId
+                    @Html.DisplayNameFor(model => model.CategoryId)
                 </th>
                 <th>
-                    Description
+                   @Html.DisplayNameFor(model => model.Description) 
                 </th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model) {
+            @foreach (Expense item in ViewBag.expenses) {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.ExpenseDate)

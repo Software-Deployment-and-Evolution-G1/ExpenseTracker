@@ -18,6 +18,8 @@ public class ExpenseController : Controller
     }
     public IActionResult Index()
     {
+        var expenses = RetrieveExpenses(CancellationToken.None);
+        ViewBag.expenses = expenses;
         return View();
     }
 
