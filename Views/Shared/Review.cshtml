@@ -1,6 +1,10 @@
 @{
     ViewData[index: "Title"] = "Expense Review";
 }
+<<<<<<< Updated upstream
+=======
+@* @model List<> *@
+>>>>>>> Stashed changes
 <h1>@ViewData[index: "Title"]</h1>
 <div class="text-center">
     <table>
@@ -11,9 +15,23 @@
             <th>Description</th>
             <th>Expense date</th>
         </tr>
+<<<<<<< Updated upstream
         
         <td>
         </td>
+=======
+        @foreach(var expense in Model)
+        {
+            <tr>
+                <td>@expense.Id</td>
+                <td>@expense.Amount</td>
+                <td>@expense.CategoryId</td>
+                <td>@expense.Description</td>
+                <td>@expense.ExpenseDate</td>
+            </tr>
+        }
+        
+>>>>>>> Stashed changes
     </table>
 
 </div>
