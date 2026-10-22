@@ -18,7 +18,28 @@ public class ExpenseController : Controller
     }
     public IActionResult Index()
     {
+        var expenses = RetrieveExpenses(CancellationToken.None);
+        ViewBag.expenses = expenses;
         return View();
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> EditAsync(int? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+
+        var expense = await _expenseService.GetExpenseAsync((int)id);
+        if (expense == null)
+        {
+            return NotFound();
+        }
+        var categories = await _expenseService.GetCategoriesAsync();
+        ViewBag.Add(categories);
+        return View(expense);
     }
 
     public IActionResult Privacy()

@@ -21,6 +21,10 @@ public sealed class ExpenseService
     {
         _context = context;
     }
+    public async Task<Expense?> GetExpenseAsync(int expenseId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Expenses.FindAsync(expenseId, cancellationToken);
+    }
 
     public async Task<List<Expense>> GetExpensesAsync(Guid userId, CancellationToken cancellationToken = default)
     {
