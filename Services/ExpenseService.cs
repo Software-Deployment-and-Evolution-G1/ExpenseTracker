@@ -21,11 +21,34 @@ public sealed class ExpenseService
     {
         _context = context;
     }
+    public async Task<Expense?> GetExpenseAsync(Guid userId, Guid expenseId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Expenses.AsNoTracking()
+            .FirstOrDefaultAsync(expense => expense.Id == expenseId && expense.UserId == userId, cancellationToken);
+    }
 
     public async Task<List<Expense>> GetExpensesAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _context.Expenses
             .Where(expense => expense.UserId == userId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<ExpenseListItemViewModel>> GetExpenseListAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Expenses
+            .AsNoTracking()
+            .Where(expense => expense.UserId == userId)
+            .OrderByDescending(expense => expense.ExpenseDate)
+            .ThenByDescending(expense => expense.CreatedAt)
+            .Select(expense => new ExpenseListItemViewModel
+            {
+                Id = expense.Id,
+                ExpenseDate = expense.ExpenseDate,
+                CategoryName = expense.Category.Name,
+                Description = expense.Description,
+                Amount = expense.Amount
+            })
             .ToListAsync(cancellationToken);
     }
 
