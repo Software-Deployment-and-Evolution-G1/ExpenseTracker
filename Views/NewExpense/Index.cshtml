@@ -1,23 +1,52 @@
 @model ExpenseTracker.Models.ExpenseViewModel
 @{
-    ViewData["Title"] = "Add a New Expense";
+    ViewData["Title"] = "Add an expense";
 }
 
-<div class="text-center">
-    <form asp-action="CreateExpense" method="post">
-        <label asp-for="ExpenseDate" />
-        <input asp-for="ExpenseDate" />
-        <span asp-validation-for="ExpenseDate" class="text-danger"></span>
-        <label asp-for="CategoryId" />
-        <select asp-for="CategoryId" asp-items="@(new SelectList(@ViewBag.categories, "CategoryID", "CategoryName"))">
-            <option value="">Select Category</option>
-        </select>
-        <label asp-for="Amount" />
-        <input asp-for="Amount" />
-        <span asp-validation-for="Amount" class="text-danger"></span>
-        <label asp-for="Description" />
-        <textarea asp-for="Description" />
-        <span asp-validation-for="Description" class="text-danger"></span>
-        <input type="submit" value="Save" class="btn btn-primary" />
-    </form>
+<div class="row justify-content-center py-4">
+    <div class="col-md-8 col-lg-6">
+        <h1 class="h2">Add an expense</h1>
+        <p class="text-muted mb-4">Capture a purchase while it’s fresh in your mind.</p>
+
+        @if (TempData["SuccessMessage"] is string message)
+        {
+            <div class="alert alert-success" role="status">@message</div>
+        }
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form asp-controller="Home" asp-action="CreateExpense" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+                    <div class="mb-3">
+                        <label asp-for="ExpenseDate" class="form-label">Date</label>
+                        <input asp-for="ExpenseDate" class="form-control" required />
+                        <span asp-validation-for="ExpenseDate" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="CategoryId" class="form-label">Category</label>
+                        <select asp-for="CategoryId" class="form-select" asp-items="@(new SelectList(ViewBag.Categories, "Id", "Name"))" required>
+                            <option value="">Select a category</option>
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Amount" class="form-label">Amount</label>
+                        <input asp-for="Amount" class="form-control" type="number" min="0.01" max="9999999999.99" step="0.01" inputmode="decimal" required />
+                        <span asp-validation-for="Amount" class="text-danger"></span>
+                    </div>
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" maxlength="500" placeholder="What was this expense for?" required></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Save expense</button>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-link w-100 mt-2">Back to expenses</a>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
