@@ -19,7 +19,7 @@ public class NewExpenseController : Controller
     }
     public IActionResult Index()
     {
-        var categories = (from category in _context.Categories select category).ToList();
+        var categories = _expenseService.GetCategoriesAsync();
         ViewBag.Add(categories);
         return View();
     }
