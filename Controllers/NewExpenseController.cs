@@ -17,15 +17,10 @@ public class NewExpenseController : Controller
         _context = context;
         _userManager = userManager;
     }
-    public async Task<IActionResult> Index()
+    public IActionResult Index()
     {
         var categories = (from category in _context.Categories select category).ToList();
         ViewBag.Add(categories);
-        return View();
-    }
-
-    public IActionResult Privacy()
-    {
         return View();
     }
 

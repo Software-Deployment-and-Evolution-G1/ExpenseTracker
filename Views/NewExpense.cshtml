@@ -6,8 +6,9 @@
 <div class="text-center">
     <form asp-action="CreateExpense" method="post">
         <label asp-for="CategoryId" />
-        <select asp-for="CategoryId"
-                asp-items="@(new SelectList(@ViewBag.categories, "CategoryID", "CategoryName"))"></select>
+        <select asp-for="CategoryId" asp-items="@(new SelectList(@ViewBag.categories, "CategoryID", "CategoryName"))">
+            <option value="">Select Category</option>
+        </select>
         <label asp-for="Amount" />
         <input asp-for="Amount" />
         <span asp-validation-for="Amount" class="text-danger"></span>
