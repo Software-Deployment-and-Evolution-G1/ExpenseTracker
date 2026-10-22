@@ -1,30 +1,105 @@
+body:has(.auth-container) {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
 
 .auth-container {
     max-width: 480px;
     margin: 3rem auto;
     padding: 2rem;
-    background-color: #ffffff;
+
+    background-color: var(--color-surface);
+    color: var(--color-text);
+
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
 
 .auth-container h1 {
     font-weight: 600;
     margin-bottom: 1.5rem;
+    color: var(--color-accent-light);
 }
 
 .auth-container .form-control {
     padding: 0.75rem;
     border-radius: 8px;
+
+    background-color: var(--color-input);
+    color: var(--color-text);
+
+    border: 1px solid var(--color-border);
+}
+
+.auth-container .form-control::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.8;
+}
+
+.auth-container .form-control:focus {
+    background-color: var(--color-input);
+    color: var(--color-text);
+
+    border-color: var(--color-accent-light);
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+}
+
+/* Labels and checkbox text */
+.auth-container .form-label,
+.auth-container .form-check-label {
+    color: var(--color-text);
+}
+
+.auth-container .form-check-input {
+    background-color: var(--color-input);
+    border-color: var(--color-border);
+}
+
+.auth-container .form-check-input:checked {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.auth-container .form-check-input:focus {
+    border-color: var(--color-accent-light);
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
 }
 
 .auth-container .btn-primary {
     width: 100%;
     padding: 0.75rem;
     border-radius: 8px;
+
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #FFFFFF;
+
+    transition: background-color 0.15s ease,
+                border-color 0.15s ease;
+}
+
+.auth-container .btn-primary:hover {
+    background-color: var(--color-accent-dark);
+    border-color: var(--color-accent-dark);
+}
+
+.auth-container .btn-primary:focus-visible {
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.35);
 }
 
 .auth-container .auth-link {
     margin-top: 1.25rem;
     text-align: center;
+    color: var(--color-text-muted);
 }
+
+.auth-container .auth-link a {
+    color: var(--color-accent-light);
+    font-weight: 600;
+}
+
+.auth-container .auth-link a:hover {
+    color: var(--color-text);
+}
+```
