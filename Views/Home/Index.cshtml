@@ -44,13 +44,40 @@
                             <td>@expense.CategoryName</td>
                             <td class="expense-description">@expense.Description</td>
                             <td class="text-end text-nowrap">@expense.Amount.ToString("N2")</td>
-                            <td class="text-end">
+                            <td class="text-end text-nowrap">
                                 <a class="btn btn-sm btn-outline-primary" asp-controller="Expense" asp-action="Edit" asp-route-id="@expense.Id" aria-label="Edit expense: @expense.Description">Edit</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-1"
+                                        data-bs-toggle="modal" data-bs-target="#deleteExpenseModal"
+                                        data-expense-id="@expense.Id" data-expense-description="@expense.Description"
+                                        data-expense-date="@expense.ExpenseDate.ToString("dd MMM yyyy")"
+                                        data-expense-amount="@expense.Amount.ToString("N2")"
+                                        aria-label="Delete expense: @expense.Description">Delete</button>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
+        </div>
+        <div class="modal fade" id="deleteExpenseModal" tabindex="-1" aria-labelledby="deleteExpenseTitle" aria-describedby="deleteExpenseWarning" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="deleteExpenseTitle">Delete expense?</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="deleteExpenseDetails" class="text-break"></p>
+                        <p id="deleteExpenseWarning" class="mb-0">This expense will be permanently deleted. This cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelDeleteExpense">Cancel</button>
+                        <form asp-controller="Expense" asp-action="Delete" method="post">
+                            <input type="hidden" name="id" id="deleteExpenseId" />
+                            <button type="submit" class="btn btn-danger">Delete expense</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     }
 }
@@ -66,4 +93,8 @@ else
         </div>
     </div>
 </div>
+}
+
+@section Scripts {
+    <script src="~/js/delete-expense.js" asp-append-version="true"></script>
 }

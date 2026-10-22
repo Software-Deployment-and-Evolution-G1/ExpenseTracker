@@ -90,11 +90,6 @@ public class ExpenseController : Controller
         return View("Edit", model);
     }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
     [Authorize]
     [HttpGet]
     public async Task<ActionResult<List<Expense>>> RetrieveExpenses(CancellationToken cancellationToken)
@@ -147,6 +142,26 @@ public class ExpenseController : Controller
         }
 
         return NoContent();
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+        {
+            return Challenge();
+        }
+
+        var result = await _expenseService.DeleteExpenseAsync(userId, id, cancellationToken);
+        if (result.Status == ExpenseMutationStatus.NotFound)
+        {
+            return NotFound();
+        }
+
+        TempData["SuccessMessage"] = "Expense deleted.";
+        return RedirectToAction("Index", "Home");
     }
 
     [Authorize]
