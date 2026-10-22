@@ -37,6 +37,8 @@ public class ExpenseController : Controller
         {
             return NotFound();
         }
+        var categories = await _expenseService.GetCategoriesAsync();
+        ViewBag.Add(categories);
         return View(expense);
     }
 
