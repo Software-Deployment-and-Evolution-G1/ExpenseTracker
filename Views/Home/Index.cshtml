@@ -1,8 +1,100 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model IReadOnlyList<ExpenseTracker.Models.ExpenseListItemViewModel>
+@{
+    ViewData["Title"] = User.Identity?.IsAuthenticated == true ? "Your expenses" : "Welcome";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@if (User.Identity?.IsAuthenticated == true)
+{
+    @if (TempData["SuccessMessage"] is string message)
+    {
+        <div class="alert alert-success" role="status">@message</div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <div class="expense-empty-state d-flex flex-column align-items-center justify-content-center text-center">
+            <h1 class="h2">No expenses yet</h1>
+            <p class="text-muted mb-4">Add your first expense to start tracking your spending.</p>
+            <a class="btn btn-primary btn-lg" asp-controller="NewExpense" asp-action="Index">Create expense</a>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 my-4">
+            <h1 class="h2 mb-0">Your expenses</h1>
+            <a class="btn btn-primary" asp-controller="NewExpense" asp-action="Index">Create expense</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <caption class="visually-hidden">Your expenses, most recent first</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Description</th>
+                        <th scope="col" class="text-end">Amount</th>
+                        <th scope="col" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var expense in Model)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@expense.ExpenseDate.ToString("dd MMM yyyy")</td>
+                            <td>@expense.CategoryName</td>
+                            <td class="expense-description">@expense.Description</td>
+                            <td class="text-end text-nowrap">@expense.Amount.ToString("N2")</td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-outline-primary" asp-controller="Expense" asp-action="Edit" asp-route-id="@expense.Id" aria-label="Edit expense: @expense.Description">Edit</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-1"
+                                        data-bs-toggle="modal" data-bs-target="#deleteExpenseModal"
+                                        data-expense-id="@expense.Id" data-expense-description="@expense.Description"
+                                        data-expense-date="@expense.ExpenseDate.ToString("dd MMM yyyy")"
+                                        data-expense-amount="@expense.Amount.ToString("N2")"
+                                        aria-label="Delete expense: @expense.Description">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="modal fade" id="deleteExpenseModal" tabindex="-1" aria-labelledby="deleteExpenseTitle" aria-describedby="deleteExpenseWarning" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="deleteExpenseTitle">Delete expense?</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="deleteExpenseDetails" class="text-break"></p>
+                        <p id="deleteExpenseWarning" class="mb-0">This expense will be permanently deleted. This cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelDeleteExpense">Cancel</button>
+                        <form asp-controller="Expense" asp-action="Delete" method="post">
+                            <input type="hidden" name="id" id="deleteExpenseId" />
+                            <button type="submit" class="btn btn-danger">Delete expense</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+<div class="row justify-content-center py-5">
+    <div class="col-md-8 col-lg-6 text-center">
+        <h1 class="display-5 mb-3">Keep track of your everyday spending</h1>
+        <p class="lead text-muted mb-4">Record your expenses with a date, category, and amount. Log in to start adding expenses to your account.</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+            <a class="btn btn-primary btn-lg" asp-controller="Authentication" asp-action="Login" asp-route-returnUrl="@Url.Action("Index", "Home")">Log in</a>
+            <a class="btn btn-outline-secondary btn-lg" asp-controller="Authentication" asp-action="Register">Create an account</a>
+        </div>
+    </div>
 </div>
+}
+
+@section Scripts {
+    <script src="~/js/delete-expense.js" asp-append-version="true"></script>
+}

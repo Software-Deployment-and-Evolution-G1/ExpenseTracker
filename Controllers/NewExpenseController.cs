@@ -16,14 +16,11 @@ public class NewExpenseController : Controller
         _expenseService = expenseService;
         _userManager = userManager;
     }
-    public IActionResult Index()
+    [Authorize]
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        return View();
-    }
-
-    public IActionResult Privacy()
-    {
-        return View();
+        ViewBag.Categories = await _expenseService.GetCategoriesAsync(cancellationToken);
+        return View(new ExpenseViewModel());
     }
 
     [Authorize]
@@ -55,6 +52,7 @@ public class NewExpenseController : Controller
             routeValues: null,
             value: result.Expense);
     }
+
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
