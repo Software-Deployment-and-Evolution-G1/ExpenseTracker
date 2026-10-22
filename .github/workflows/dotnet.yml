@@ -116,12 +116,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # Prevent concurrent deployments to the same environment.
     concurrency:
       group: expense-tracker-deploy-${{ github.ref_name }}
       cancel-in-progress: false
 
-    # GitHub Environment matches the deployment branch.
     environment:
       name: ${{ github.ref_name }}
 

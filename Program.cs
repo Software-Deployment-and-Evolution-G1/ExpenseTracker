@@ -27,6 +27,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ExpenseService>();
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -48,6 +49,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+app.MapHealthChecks("/health");
 
 app.MapControllerRoute(
     name: "default",
