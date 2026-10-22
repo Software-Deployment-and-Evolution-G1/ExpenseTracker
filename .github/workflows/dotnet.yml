@@ -1,28 +1,214 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: Expense Tracker CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - development
+      - staging
+      - production
+
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - development
+      - staging
+      - production
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  EB_APPLICATION_NAME: ${{ vars.EB_APPLICATION_NAME }}
+  AWS_DEPLOY_BUCKET: ${{ vars.AWS_DEPLOY_BUCKET }}
 
 jobs:
-  build:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore "ExpenseTracker.sln"
+
+      - name: Build solution
+        run: |
+          dotnet build "ExpenseTracker.sln" \
+            --configuration Release \
+            --no-restore
+
+      - name: Run automated tests
+        run: |
+          dotnet test "ExpenseTracker.sln" \
+            --configuration Release \
+            --no-build
+  package:
+    name: Package Application
+    needs: build-and-test
+
+    if: |
+      github.event_name != 'pull_request' &&
+      (
+        github.ref == 'refs/heads/development' ||
+        github.ref == 'refs/heads/staging' ||
+        github.ref == 'refs/heads/production'
+      )
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Publish application
+        run: |
+          dotnet publish "ExpenseTracker.csproj" \
+            --configuration Release \
+            --output ./publish
+
+      - name: Create Procfile
+        run: |
+          printf 'web: dotnet %s\n' \
+            "ExpenseTracker.dll" > ./publish/Procfile
+
+      - name: Validate publish output
+        run: |
+          test -f "./publish/ExpenseTracker.dll"
+          test -f "./publish/Procfile"
+
+      - name: Create deployment ZIP
+        run: |
+          cd publish
+          zip -r ../deployment.zip .
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: expense-tracker-deployment
+          path: deployment.zip
+          retention-days: 7
+
+  deploy:
+    name: Deploy ${{ github.ref_name }}
+    needs: package
+
+    if: |
+      github.event_name != 'pull_request' &&
+      (
+        github.ref == 'refs/heads/development' ||
+        github.ref == 'refs/heads/staging' ||
+        github.ref == 'refs/heads/production'
+      )
+
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: expense-tracker-deploy-${{ github.ref_name }}
+      cancel-in-progress: false
+
+    environment:
+      name: ${{ github.ref_name }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download deployment artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: expense-tracker-deployment
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Generate application version label
+        id: version
+        run: |
+          VERSION_LABEL="expense-tracker-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+          echo "label=$VERSION_LABEL" >> "$GITHUB_OUTPUT"
+
+      - name: Upload application to S3
+        env:
+          VERSION_LABEL: ${{ steps.version.outputs.label }}
+        run: |
+          aws s3 cp deployment.zip \
+            "s3://${AWS_DEPLOY_BUCKET}/expense-tracker/${VERSION_LABEL}.zip"
+
+      - name: Register Elastic Beanstalk version
+        env:
+          VERSION_LABEL: ${{ steps.version.outputs.label }}
+        run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name "$EB_APPLICATION_NAME" \
+            --version-label "$VERSION_LABEL" \
+            --source-bundle \
+              S3Bucket="$AWS_DEPLOY_BUCKET",S3Key="expense-tracker/${VERSION_LABEL}.zip" \
+
+      - name: Deploy application
+        env:
+          ENV_NAME: ${{ vars.EB_ENVIRONMENT_NAME }}
+          VERSION_LABEL: ${{ steps.version.outputs.label }}
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name "$ENV_NAME" \
+            --version-label "$VERSION_LABEL"
+
+      - name: Verify deployment and application health
+        env:
+          ENV_NAME: ${{ vars.EB_ENVIRONMENT_NAME }}
+          EXPECTED_VERSION: ${{ steps.version.outputs.label }}
+        run: |
+          echo "Waiting for deployment to $ENV_NAME..."
+
+          for attempt in $(seq 1 60); do
+            read -r STATUS HEALTH VERSION CNAME <<< "$(
+              aws elasticbeanstalk describe-environments \
+                --environment-names "$ENV_NAME" \
+                --query 'Environments[0].[Status,Health,VersionLabel,CNAME]' \
+                --output text
+            )"
+
+            echo "Attempt $attempt: Status=$STATUS, Health=$HEALTH, Version=$VERSION"
+
+            if [[ "$STATUS" == "Ready" &&
+                  "$HEALTH" == "Green" &&
+                  "$VERSION" == "$EXPECTED_VERSION" ]]; then
+
+              echo "Elastic Beanstalk deployment completed."
+
+              if curl \
+                --fail \
+                --silent \
+                --show-error \
+                --max-time 10 \
+                "http://${CNAME}/health"; then
+
+                echo "Application health check passed."
+                exit 0
+              fi
+            fi
+
+            sleep 10
+          done
+
+          echo "Deployment verification failed."
+          exit 1
