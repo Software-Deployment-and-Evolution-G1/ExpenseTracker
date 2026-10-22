@@ -1,28 +1,28 @@
-@model ExpenseTracker.Models.ExpenseViewModel
+@model List<ExpenseTracker.Models.Expense>
 @{
     ViewData["Title"] = "View Expenses";
 }
 <div>
     <a asp-controller="NewExpense" asp-action="Index">Create a new expense</a>
-    <table>
+    <table> 
         <thead>
             <tr>
                 <th>
-                    @Html.DisplayNameFor(model => model.ExpenseDate)
+                    ExpenseDate
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Amount)
+                    Amount
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.CategoryId)
+                    CategoryId
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Description)
+                    Description
                 </th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in ExpenseTracker.Controllers.ExpenseController.RetrieveExpenses) {
+            @foreach (var item in Model) {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.ExpenseDate)
