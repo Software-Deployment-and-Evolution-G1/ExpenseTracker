@@ -5,13 +5,13 @@ on:
     branches:
       - development
       - staging
-      - production
+      - main
 
   pull_request:
     branches:
       - development
       - staging
-      - production
+      - main
 
   workflow_dispatch:
 
