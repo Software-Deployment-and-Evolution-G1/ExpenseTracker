@@ -18,11 +18,8 @@ public class NewExpenseController : Controller
     }
     public IActionResult Index()
     {
-        return View();
-    }
-
-    public IActionResult Privacy()
-    {
+        var categories = _expenseService.GetCategoriesAsync();
+        ViewBag.Add(categories);
         return View();
     }
 
@@ -55,6 +52,7 @@ public class NewExpenseController : Controller
             routeValues: null,
             value: result.Expense);
     }
+
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
