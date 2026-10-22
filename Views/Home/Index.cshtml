@@ -33,6 +33,7 @@
                         <th scope="col">Category</th>
                         <th scope="col">Description</th>
                         <th scope="col" class="text-end">Amount</th>
+                        <th scope="col" class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,6 +44,9 @@
                             <td>@expense.CategoryName</td>
                             <td class="expense-description">@expense.Description</td>
                             <td class="text-end text-nowrap">@expense.Amount.ToString("N2")</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" asp-controller="Expense" asp-action="Edit" asp-route-id="@expense.Id" aria-label="Edit expense: @expense.Description">Edit</a>
+                            </td>
                         </tr>
                     }
                 </tbody>
