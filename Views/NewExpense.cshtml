@@ -5,7 +5,6 @@
 
 <div class="text-center">
     <form asp-action="CreateExpense" method="post">
-        <input type="hidden" asp-for="Id" />
         <label asp-for="CategoryId" />
         <select asp-for="CategoryId"
                 asp-items="@(new SelectList(@ViewBag.categories, "CategoryID", "CategoryName"))"></select>
