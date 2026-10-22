@@ -25,6 +25,11 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Authentication/Login";
+});
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ExpenseService>();
 builder.Services.AddHealthChecks();
