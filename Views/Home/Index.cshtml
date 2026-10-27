@@ -23,14 +23,14 @@
         <div class="expense-empty-state d-flex flex-column align-items-center justify-content-center text-center">
             <h1 class="h2">No expenses yet</h1>
             <p class="text-muted mb-4">Add your first expense to start tracking your spending.</p>
-            <a class="btn btn-primary btn-lg" asp-controller="NewExpense" asp-action="Index">Create expense</a>
+            <a class="btn btn-primary btn-lg" asp-controller="NewExpense" asp-action="Index">Add expense</a>
         </div>
     }
     else
     {
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 my-4">
             <h1 class="h2 mb-0">Your expenses</h1>
-            <a class="btn btn-primary" asp-controller="NewExpense" asp-action="Index">Create expense</a>
+            <a class="btn btn-primary" asp-controller="NewExpense" asp-action="Index">Add expense</a>
         </div>
         <div class="table-responsive">
             <table class="table table-striped align-middle">
