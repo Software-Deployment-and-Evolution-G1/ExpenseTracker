@@ -25,35 +25,74 @@ env:
 
 jobs:
   build-and-test:
-    name: Build and Test
+    name: Unit Tests
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
+      - name: Run unit tests
+        run: dotnet test tests/ExpenseTracker.Tests --configuration Release --logger trx --results-directory TestResults/unit
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: TestResults/
+          retention-days: 7
 
-      - name: Restore dependencies
-        run: dotnet restore "ExpenseTracker.sln"
+  integration-tests:
+    name: PostgreSQL Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TEST_ARTIFACTS: ${{ github.workspace }}/TestResults/integration
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Run integration tests
+        run: dotnet test tests/ExpenseTracker.IntegrationTests --configuration Release --logger trx --results-directory TestResults/integration
+      - name: Upload integration results and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: TestResults/
+          retention-days: 7
 
-      - name: Build solution
-        run: |
-          dotnet build "ExpenseTracker.sln" \
-            --configuration Release \
-            --no-restore
+  e2e-tests:
+    name: Chromium End-to-End Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TEST_ARTIFACTS: ${{ github.workspace }}/TestResults/e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Build browser tests
+        run: dotnet build tests/ExpenseTracker.E2ETests --configuration Release
+      - name: Install Chromium and system dependencies
+        shell: pwsh
+        run: ./tests/ExpenseTracker.E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+      - name: Run browser tests
+        run: dotnet test tests/ExpenseTracker.E2ETests --configuration Release --no-build --logger trx --results-directory TestResults/e2e
+      - name: Upload browser results, failure traces, screenshots, and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: TestResults/
+          retention-days: 7
 
-      - name: Run automated tests
-        run: |
-          dotnet test "ExpenseTracker.sln" \
-            --configuration Release \
-            --no-build
   package:
     name: Package Application
-    needs: build-and-test
+    needs: [build-and-test, integration-tests, e2e-tests]
 
     if: |
       github.event_name != 'pull_request' &&

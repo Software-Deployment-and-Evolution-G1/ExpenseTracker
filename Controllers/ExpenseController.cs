@@ -59,28 +59,30 @@ public class ExpenseController : Controller
             return Challenge();
         }
 
-        if (await _expenseService.GetExpenseAsync(userId, model.Id, cancellationToken) is null)
+        var expense = await _expenseService.GetExpenseAsync(userId, model.Id, cancellationToken);
+        if (expense is null)
         {
             return NotFound();
         }
 
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var result = await _expenseService.UpdateExpenseAsync(userId, model, cancellationToken);
-            if (result.Status == ExpenseMutationStatus.NotFound)
-            {
-                return NotFound();
-            }
-
-            if (result.Status == ExpenseMutationStatus.Succeeded)
-            {
-                TempData["SuccessMessage"] = "Expense updated.";
-                return RedirectToAction("Index", "Home");
-            }
-
-            ModelState.AddModelError(nameof(model.CategoryId), "Select a valid category.");
+            return await EditFormAsync(model, cancellationToken);
         }
 
+        var result = await _expenseService.UpdateExpenseAsync(userId, model, cancellationToken);
+        if (result.Status == ExpenseMutationStatus.NotFound)
+        {
+            return NotFound();
+        }
+
+        if (result.Status == ExpenseMutationStatus.Succeeded)
+        {
+            TempData["SuccessMessage"] = "Expense updated.";
+            return RedirectToAction("Index", "Home");
+        }
+
+        ModelState.AddModelError(nameof(model.CategoryId), "Select a valid category.");
         return await EditFormAsync(model, cancellationToken);
     }
 

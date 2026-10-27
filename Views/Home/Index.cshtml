@@ -10,6 +10,14 @@
         <div class="alert alert-success" role="status">@message</div>
     }
 
+    <div class="card bg-light my-4">
+        <div class="card-body">
+            <h2 class="h6 text-muted">Total spending</h2>
+            <p class="h3 mb-0">@ViewBag.TotalSpending.ToString("N2")</p>
+            <p class="small text-muted mb-0 mt-2">Across all your recorded expenses</p>
+        </div>
+    </div>
+
     @if (Model.Count == 0)
     {
         <div class="expense-empty-state d-flex flex-column align-items-center justify-content-center text-center">
