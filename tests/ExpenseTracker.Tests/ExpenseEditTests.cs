@@ -42,6 +42,9 @@ public sealed class ExpenseEditTests
 
         Assert.IsType<NotFoundResult>(await controller.Edit(expense.Id, default));
         Assert.IsType<NotFoundResult>(await controller.Edit(ModelFor(expense), default));
+
+        controller.ModelState.AddModelError("Amount", "Enter a valid amount.");
+        Assert.IsType<NotFoundResult>(await controller.Edit(ModelFor(expense), default));
         Assert.Equal(10m, expense.Amount);
     }
 

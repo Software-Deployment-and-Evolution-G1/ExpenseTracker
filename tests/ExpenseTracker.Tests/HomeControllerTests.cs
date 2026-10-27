@@ -24,6 +24,7 @@ public sealed class HomeControllerTests
         Assert.Null(result.ViewName);
         Assert.Null(result.Model);
         Assert.Null(controller.ViewData["Categories"]);
+        Assert.Null(controller.ViewData["TotalSpending"]);
     }
 
     [Fact]
@@ -34,8 +35,8 @@ public sealed class HomeControllerTests
         var userId = Guid.NewGuid();
         context.Categories.Add(category);
         context.Expenses.AddRange(
-            new Expense { UserId = userId, CategoryId = category.Id, Amount = 10, Description = "Older", ExpenseDate = new DateTime(2026, 10, 1) },
-            new Expense { UserId = userId, CategoryId = category.Id, Amount = 20, Description = "Newer", ExpenseDate = new DateTime(2026, 10, 2) },
+            new Expense { UserId = userId, CategoryId = category.Id, Amount = 12.50m, Description = "Older", ExpenseDate = new DateTime(2026, 10, 1) },
+            new Expense { UserId = userId, CategoryId = category.Id, Amount = 20.75m, Description = "Newer", ExpenseDate = new DateTime(2026, 10, 2) },
             new Expense { UserId = Guid.NewGuid(), CategoryId = category.Id, Amount = 30, Description = "Private", ExpenseDate = new DateTime(2026, 10, 3) });
         await context.SaveChangesAsync();
         var controller = CreateController(context, userId);
@@ -45,7 +46,8 @@ public sealed class HomeControllerTests
         var expenses = Assert.IsType<List<ExpenseListItemViewModel>>(result.Model);
         Assert.Equal(new[] { "Newer", "Older" }, expenses.Select(expense => expense.Description));
         Assert.All(expenses, expense => Assert.Equal("Food", expense.CategoryName));
-        Assert.Equal(20m, expenses[0].Amount);
+        Assert.Equal(20.75m, expenses[0].Amount);
+        Assert.Equal(33.25m, controller.ViewData["TotalSpending"]);
     }
 
     [Fact]
@@ -57,6 +59,7 @@ public sealed class HomeControllerTests
         var result = Assert.IsType<ViewResult>(await controller.Index(default));
 
         Assert.Empty(Assert.IsType<List<ExpenseListItemViewModel>>(result.Model));
+        Assert.Equal(0m, controller.ViewData["TotalSpending"]);
     }
 
     [Fact]

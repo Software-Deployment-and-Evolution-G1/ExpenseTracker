@@ -28,7 +28,9 @@ public class HomeController : Controller
             return Challenge();
         }
 
-        return View(await _expenseService.GetExpenseListAsync(userId, cancellationToken));
+        var expenses = await _expenseService.GetExpenseListAsync(userId, cancellationToken);
+        ViewBag.TotalSpending = expenses.Sum(expense => expense.Amount);
+        return View(expenses);
     }
 
     [Authorize]
@@ -41,18 +43,19 @@ public class HomeController : Controller
             return Challenge();
         }
 
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var result = await _expenseService.CreateExpenseAsync(userId, model, cancellationToken);
-            if (result.Status == ExpenseMutationStatus.Succeeded)
-            {
-                TempData["SuccessMessage"] = "Expense saved.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            ModelState.AddModelError(nameof(model.CategoryId), "Select a valid category.");
+            return await ExpenseFormAsync(model, cancellationToken);
         }
 
+        var result = await _expenseService.CreateExpenseAsync(userId, model, cancellationToken);
+        if (result.Status == ExpenseMutationStatus.Succeeded)
+        {
+            TempData["SuccessMessage"] = "Expense saved.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        ModelState.AddModelError(nameof(model.CategoryId), "Select a valid category.");
         return await ExpenseFormAsync(model, cancellationToken);
     }
 
