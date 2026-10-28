@@ -86,7 +86,7 @@ public sealed class ExpenseJourneyTests(BrowserFixture fixture) : IClassFixture<
     {
         var email = await Register(page);
 
-        await page.GetByRole(AriaRole.Link, new() { Name = "Create expense", Exact = true }).ClickAsync();
+        await page.GetByRole(AriaRole.Link, new() { Name = "Add expense", Exact = true }).ClickAsync();
         await page.GetByLabel("Date", new() { Exact = true }).FillAsync("2026-10-01");
         await page.GetByLabel("Category", new() { Exact = true })
             .SelectOptionAsync(new SelectOptionValue { Label = "Food" });
@@ -185,7 +185,7 @@ public sealed class ExpenseJourneyTests(BrowserFixture fixture) : IClassFixture<
 
     private static async Task CreateExpense(IPage page, string description, string amount)
     {
-        await page.GetByRole(AriaRole.Link, new() { Name = "Create expense", Exact = true }).ClickAsync();
+        await page.GetByRole(AriaRole.Link, new() { Name = "Add expense", Exact = true }).ClickAsync();
         await page.GetByLabel("Date", new() { Exact = true }).FillAsync("2026-10-01");
         await page.GetByLabel("Category", new() { Exact = true })
             .SelectOptionAsync(new SelectOptionValue { Label = "Food" });
